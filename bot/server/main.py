@@ -47,19 +47,19 @@ async def transmit_file(file_id):
         'Content-Disposition': f'attachment; filename={file_name}',
         'Content-Range': f'bytes {start}-{end}/{file_size}',
         'Accept-Ranges': 'bytes',
-        'Content-Length': str(content_length),
     }
     status_code = 206 if range_header else 200
 
     async def file_stream():
-        bytes_streamed = 0
-        chunk_index = 0
+    bytes_streamed = 0
+    chunk_index = 0
+    try:
         async for chunk in TelegramBot.stream_media(
             file,
             offset=offset_chunks,
             limit=chunks_to_stream,
         ):
-            if chunk_index == 0: # Trim the first chunk if necessary
+            if chunk_index == 0:
                 trim_start = start % chunk_size
                 if trim_start > 0:
                     chunk = chunk[trim_start:]
@@ -68,12 +68,16 @@ async def transmit_file(file_id):
             if remaining_bytes <= 0:
                 break
 
-            if len(chunk) > remaining_bytes: # Trim the last chunk if necessary
+            if len(chunk) > remaining_bytes:
                 chunk = chunk[:remaining_bytes]
 
             yield chunk
             bytes_streamed += len(chunk)
             chunk_index += 1
+
+    except Exception as e:
+        print("Stream stopped:", e)
+        
 
     return Response(file_stream(), headers=headers, status=status_code)
 
@@ -81,3 +85,4 @@ async def transmit_file(file_id):
 async def stream_file(file_id):
     code = request.args.get('code') or abort(401)
     return await render_template('player.html', mediaLink=f'{Server.BASE_URL}/dl/{file_id}?code={code}')
+
