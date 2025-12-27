@@ -12,44 +12,35 @@ bp = Blueprint('main', __name__)
 async def home():
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}')
 
-@bp.route('/dl/<int:file_id>')
-async def transmit_file(file_id):
-    file = await get_message(file_id) or abort(404)
-    code = request.args.get('code') or abort(401)
-    range_header = request.headers.get('Range')
-
-    if code != file.caption.split('/')[0]:
-        abort(403)
-
-    file_name, file_size, mime_type = get_file_properties(file)
-
+@bp.route("/dl/<file_id>")
+async def dl(file_id):
+    filepath = f"/path/to/files/{file_id}.mp4"
     start = 0
-    end = file_size - 1
-    chunk_size = 1 * 1024 * 1024  # 1 MB
+    end = None
 
+    range_header = request.headers.get('Range', None)
     if range_header:
-        range_match = re_match(r'bytes=(\d+)-(\d*)', range_header)
-        if range_match:
-            start = int(range_match.group(1))
-            end = int(range_match.group(2)) if range_match.group(2) else file_size - 1
-            if start > end or start >= file_size:
-                abort(416, 'Requested range not satisfiable')
-        else:
-            abort(400, 'Invalid Range header')
+        match = re.match(r'bytes=(\d+)-(\d*)', range_header)
+        if match:
+            start = int(match.group(1))
+            if match.group(2):
+                end = int(match.group(2))
 
-    offset_chunks = start // chunk_size
-    total_bytes_to_stream = end - start + 1
-    chunks_to_stream = ceil(total_bytes_to_stream / chunk_size)
-    content_length = total_bytes_to_stream
+    file_size = os.path.getsize(filepath)
+    end = end if end is not None else file_size - 1
+    length = end - start + 1
+
+    with open(filepath, 'rb') as f:
+        f.seek(start)
+        chunk = f.read(length)
 
     headers = {
-        'Content-Type': mime_type,
-        'Content-Disposition': f'attachment; filename={file_name}',
         'Content-Range': f'bytes {start}-{end}/{file_size}',
-        'Accept-Ranges': 'bytes'
+        'Accept-Ranges': 'bytes',
+        'Content-Length': str(length),
+        'Content-Type': 'video/mp4'
     }
-
-    status_code = 206 if range_header else 200
+    return Response(chunk, 206, headers)
 
     async def file_stream():
         bytes_streamed = 0
@@ -88,3 +79,4 @@ async def stream_file(file_id):
         'player.html',
         mediaLink=f'{Server.BASE_URL}/dl/{file_id}?code={code}'
     )
+
