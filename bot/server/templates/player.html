@@ -1,152 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PrIMe SpoT - {{ file_name }}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-primary: #ffffff;
-            --text-secondary: #b0b0b0;
-            --accent-blue: #5cb8ff;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .header {
-            width: 100%;
-            background-color: #56CCF2;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-sizing: border-box;
-        }
-
-        .header h1 { margin: 0; font-size: 20px; color: white; }
-
-        .container {
-            width: 95%;
-            max-width: 600px;
-            margin-top: 20px;
-        }
-
-        /* Video Player Styling */
-        .video-container {
-            width: 100%;
-            background: #000;
-            border-radius: 12px;
-            overflow: hidden;
-            aspect-ratio: 16/9;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-
-        video { width: 100%; height: 100%; }
-
-        /* Button Group */
-        .btn-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            color: white;
-            transition: transform 0.2s;
-        }
-
-        .btn:active { transform: scale(0.98); }
-        .btn i { margin-right: 10px; }
-
-        .mx { background-color: #9ba7e1; }
-        .vlc { background-color: #4caf50; }
-        .playit { background-color: #ff9800; }
-        .download { background-color: #4caf50; }
-        .create { background-color: #ffeb3b; color: #333; }
-        .share { background-color: #f44336; }
-
-        /* Info Section */
-        .info-card {
-            background-color: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;
-            margin-bottom: 30px;
-        }
-
-        .info-card h3 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .info-item { margin: 8px 0; color: var(--text-secondary); }
-        .info-item span { color: var(--accent-blue); font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PriMe SpoT - Video Player</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #111;
+        color: #fff;
+        text-align: center;
+    }
+    header {
+        background-color: #2196f3;
+        padding: 12px;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    video {
+        width: 90%;
+        max-width: 700px;
+        margin: 15px auto;
+        border-radius: 8px;
+        background-color: #000;
+    }
+    button {
+        display: block;
+        width: 90%;
+        max-width: 700px;
+        margin: 8px auto;
+        padding: 12px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        color: white;
+    }
+    .mx { background-color: #9a9ae5; }
+    .vlc { background-color: #4caf50; }
+    .play { background-color: #ff9800; }
+    .download { background-color: #4caf50; }
+    .create { background-color: #ffeb3b; color: #333; }
+    .share { background-color: #f44336; }
+    .file-info {
+        background-color: #222;
+        padding: 12px;
+        margin: 10px auto;
+        width: 90%;
+        max-width: 700px;
+        border-radius: 8px;
+        text-align: left;
+    }
+</style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>PrIMe SpoT</h1>
-        <button style="border:none; padding:5px 10px; border-radius:5px;">🌙 Dark Mode</button>
-    </div>
+<header>PriMe SpoT</header>
 
-    <div class="container">
-        <div class="video-container">
-            <video controls poster="https://via.placeholder.com/640x360.png?text=Movie+Poster">
-                <source src="{{ dl_link }}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        </div>
+<!-- Video Poster -->
+<img id="poster" src="/stream/poster.jpg" alt="Poster" style="width:90%; max-width:700px; border-radius:8px; margin:10px auto;">
 
-        <div class="btn-list">
-            <a href="intent:{{ dl_link }}#Intent;package=com.mxtech.videoplayer.ad;S.title={{ file_name }};end" class="btn mx">
-                <i class="fas fa-play"></i> MX Player
-            </a>
+<!-- Video Player -->
+<video id="videoPlayer" controls poster="/stream/poster.jpg">
+    Your browser does not support HTML5 video.
+</video>
 
-            <a href="vlc://{{ dl_link }}" class="btn vlc">
-                <i class="fas fa-play"></i> VLC Player
-            </a>
+<!-- Buttons -->
+<button class="mx" onclick="openMX()">▶ MX Player</button>
+<button class="vlc" onclick="openVLC()">▶ VLC Player</button>
+<button class="play" onclick="playVideo()">▶ Play it</button>
+<button class="download" onclick="downloadVideo()">↓ Download</button>
+<button class="create" onclick="createLink()">✈ Create Link</button>
+<button class="share" onclick="shareVideo()">🔗 Share Now</button>
 
-            <a href="{{ dl_link }}" class="btn playit">
-                <i class="fas fa-play"></i> Play it
-            </a>
+<!-- File Info -->
+<div class="file-info">
+    <p><strong>Name:</strong> <span id="fileName">Loading...</span></p>
+    <p><strong>Size:</strong> <span id="fileSize">Loading...</span></p>
+</div>
 
-            <a href="{{ dl_link }}" download class="btn download">
-                <i class="fas fa-download"></i> Download
-            </a>
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const fileId = urlParams.get('file_id');
+const code = urlParams.get('code');
 
-            <a href="#" class="btn create">
-                <i class="fas fa-plane"></i> Create Like This Link
-            </a>
+if(!fileId || !code){
+    alert("Invalid file or code!");
+}
 
-            <a href="https://t.me/share/url?url={{ request.url }}" class="btn share">
-                <i class="fas fa-link"></i> Share Now
-            </a>
-        </div>
+// Video & download URLs
+const videoURL = `/dl/${fileId}?code=${code}`;
+const downloadURL = videoURL;
 
-        <div class="info-card">
-            <h3>File Information</h3>
-            <div class="info-item">Name: <span>{{ file_name if file_name else 'Unknown' }}</span></div>
-            <div class="info-item">Size: <span>{{ file_size if file_size else 'Calculating...' }}</span></div>
-        </div>
-    </div>
+// Update file info
+fetch(downloadURL, { method: 'HEAD' })
+.then(res => {
+    document.getElementById('fileName').innerText = `File ${fileId}.mp4`;
+    document.getElementById('fileSize').innerText = (res.headers.get('content-length') / (1024*1024)).toFixed(2) + " MB";
+}).catch(console.error);
+
+// MediaSource Streaming for buffering
+if ('MediaSource' in window) {
+    const video = document.getElementById('videoPlayer');
+    const mediaSource = new MediaSource();
+    video.src = URL.createObjectURL(mediaSource);
+
+    mediaSource.addEventListener('sourceopen', () => {
+        const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.64001E, mp4a.40.2"');
+        fetch(videoURL)
+            .then(response => response.arrayBuffer())
+            .then(data => {
+                sourceBuffer.appendBuffer(data);
+            })
+            .catch(console.error);
+    });
+} else {
+    // Fallback
+    document.getElementById('videoPlayer').src = videoURL;
+}
+
+// Button functions
+function openMX() {
+    window.location.href = `intent:${videoURL}#Intent;package=com.mxtech.videoplayer.ad;end`;
+}
+
+function openVLC() {
+    window.location.href = `vlc://${videoURL}`;
+}
+
+function playVideo() {
+    const video = document.getElementById('videoPlayer');
+    video.play();
+}
+
+function downloadVideo() {
+    window.location.href = downloadURL;
+}
+
+function createLink() {
+    prompt("Copy this link:", `${window.location.origin}/player.html?file_id=${fileId}&code=${code}`);
+}
+
+function shareVideo() {
+    if(navigator.share){
+        navigator.share({
+            title: "Watch Video",
+            url: `${window.location.origin}/player.html?file_id=${fileId}&code=${code}`
+        });
+    } else {
+        alert("Sharing not supported. Copy the link manually.");
+    }
+}
+</script>
 
 </body>
 </html>
-
