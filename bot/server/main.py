@@ -1,78 +1,55 @@
-from quart import Blueprint, Response, request, render_template, redirect
-from math import ceil
+import os
 import re
+from quart import Blueprint, Response, request, render_template, redirect
 from .error import abort
-from bot import TelegramBot
 from bot.config import Telegram, Server
-from bot.modules.telegram import get_message, get_file_properties
 
 bp = Blueprint('main', __name__)
 
+# Redirect home to bot
 @bp.route('/')
 async def home():
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}')
 
-@bp.route('/dl/<file_id>')
-async def transmit_file(file_id):
-    file = await get_message(file_id) or abort(404)
-    code = request.args.get('code') or abort(401)
-    range_header = request.headers.get('Range')
+# Download/stream endpoint
+@bp.route("/dl/<file_id>")
+async def dl(file_id):
+    # Update this path to where your files actually are
+    filepath = f"/path/to/files/{file_id}.mp4"
 
-    if code != file.caption.split('/')[0]:
-        abort(403)
+    if not os.path.exists(filepath):
+        return "File not found", 404
 
-    file_name, file_size, mime_type = get_file_properties(file)
+    file_size = os.path.getsize(filepath)
     start = 0
     end = file_size - 1
-    chunk_size = 1 * 1024 * 1024  # 1 MB
 
+    range_header = request.headers.get('Range', None)
     if range_header:
-        range_match = re.match(r'bytes=(\d+)-(\d*)', range_header)
-        if range_match:
-            start = int(range_match.group(1))
-            end = int(range_match.group(2)) if range_match.group(2) else file_size - 1
-            if start > end or start >= file_size:
-                abort(416, 'Requested range not satisfiable')
-        else:
-            abort(400, 'Invalid Range header')
+        match = re.match(r'bytes=(\d+)-(\d*)', range_header)
+        if match:
+            start = int(match.group(1))
+            if match.group(2):
+                end = int(match.group(2))
+    length = end - start + 1
 
-    offset_chunks = start // chunk_size
-    total_bytes_to_stream = end - start + 1
-    chunks_to_stream = ceil(total_bytes_to_stream / chunk_size)
+    with open(filepath, 'rb') as f:
+        f.seek(start)
+        chunk = f.read(length)
 
-    content_length = total_bytes_to_stream
     headers = {
-        'Content-Type': mime_type,
-        'Content-Disposition': f'attachment; filename="{file_name}"',
         'Content-Range': f'bytes {start}-{end}/{file_size}',
         'Accept-Ranges': 'bytes',
+        'Content-Length': str(length),
+        'Content-Type': 'video/mp4'
     }
-    status_code = 206 if range_header else 200
+    return Response(chunk, status=206 if range_header else 200, headers=headers)
 
-    async def file_stream():
-        bytes_streamed = 0
-        chunk_index = 0
-        try:
-            async for chunk in TelegramBot.stream_media(file, offset=offset_chunks, limit=chunks_to_stream):
-                if chunk_index == 0:
-                    trim_start = start % chunk_size
-                    if trim_start > 0:
-                        chunk = chunk[trim_start:]
-                remaining_bytes = content_length - bytes_streamed
-                if remaining_bytes <= 0:
-                    break
-                if len(chunk) > remaining_bytes:
-                    chunk = chunk[:remaining_bytes]
-                yield chunk
-                bytes_streamed += len(chunk)
-                chunk_index += 1
-        except Exception as e:
-            print("Stream stopped:", e)
-            return
-
-    return Response(file_stream(), headers=headers, status=status_code)
-
+# Stream endpoint
 @bp.route('/stream/<file_id>')
 async def stream_file(file_id):
     code = request.args.get('code') or abort(401)
-    return await render_template('player.html', mediaLink=f'{Server.BASE_URL}/dl/{file_id}?code={code}')
+    return await render_template(
+        'player.html',
+        mediaLink=f'{Server.BASE_URL}/dl/{file_id}?code={code}'
+    )
