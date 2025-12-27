@@ -3,182 +3,113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PriMe Spot - Video Streaming</title>
+<title>Video Player</title>
 <style>
   body {
-    font-family: Arial, sans-serif;
-    background-color: #121212;
-    color: #fff;
     margin: 0;
     padding: 0;
+    background: #121212;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    text-align: center;
   }
   header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #5BC0EB;
+    background: #4fc3f7;
     padding: 10px 20px;
-    color: #fff;
+    font-size: 20px;
     font-weight: bold;
-    font-size: 18px;
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-  }
-  header button {
-    background: #fff;
     color: #000;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  .container {
-    padding: 20px;
-    max-width: 600px;
-    margin: auto;
-  }
-  .poster {
-    width: 100%;
-    border-radius: 10px;
-    margin-bottom: 15px;
   }
   video {
-    width: 100%;
+    width: 90%;
+    max-width: 700px;
+    margin: 15px auto;
     border-radius: 10px;
-    margin-bottom: 15px;
     background: #000;
   }
-  a.button {
+  .btn {
     display: block;
-    text-align: center;
-    padding: 12px 0;
-    margin: 5px 0;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
+    width: 90%;
+    max-width: 700px;
+    margin: 8px auto;
+    padding: 12px;
     font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
     color: #fff;
   }
-  .mx { background: #9FA8DA; }
-  .vlc { background: #4CAF50; }
-  .play { background: #FF9800; }
-  .download { background: #4CAF50; }
-  .create { background: #FFEB3B; color: #000; }
-  .share { background: #F44336; }
-  .file-info {
-    background: #1E1E1E;
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 15px;
+  .play { background: #ff9800; }
+  .download { background: #4caf50; }
+  .mx { background: #8e99f3; }
+  .vlc { background: #43a047; }
+  .create { background: #ffeb3b; color: #000; }
+  .share { background: #f44336; }
+  .info {
+    background: #222;
+    padding: 12px;
+    margin: 12px auto;
+    width: 90%;
+    max-width: 700px;
+    border-radius: 8px;
+    text-align: left;
   }
-  .file-info h3 { margin: 0 0 10px 0; }
-  .file-info p { margin: 5px 0; font-size: 14px; }
 </style>
 </head>
 <body>
 
-<header>
-  <span>PriMe SpoT</span>
-  <button id="modeToggle">🌞 Light Mode</button>
-</header>
+<header>PriMe SpoT</header>
 
-<div class="container">
-  <img class="poster" src="{{ https://gofile.io/d/Q1SkHU }}" alt="Movie Poster">
+<video id="videoPlayer" controls poster="{{ poster_url '' }}">
+  <source src="{{ mediaLink }}" type="video/mp4">
+  Your browser does not support HTML5 video.
+</video>
 
-  <video id="videoPlayer" controls poster="{{ poster_url }}">
-    <source src="{{ media_link }}" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
+<button class="btn play" onclick="document.getElementById('videoPlayer').play()">▶ Play Video</button>
+<button class="btn download" onclick="downloadVideo()">⬇ Download</button>
+<button class="btn mx" onclick="openExternal('com.mxtech.videoplayer.ad')">▶ MX Player</button>
+<button class="btn vlc" onclick="openExternal('org.videolan.vlc')">▶ VLC Player</button>
+<button class="btn create" onclick="createLink()">✈ Create Like This Link</button>
+<button class="btn share" onclick="shareVideo()">🔗 Share</button>
 
-  <!-- Buttons -->
-  <a class="button mx" target="_blank">▶ MX Player</a>
-  <a class="button vlc" target="_blank">▶ VLC Player</a>
-  <a class="button play" target="_blank">▶ Play it</a>
-  <a class="button download" download target="_blank">⬇ Download</a>
-  <a class="button create" target="_blank">✈ Create Like This Link</a>
-  <a class="button share" target="_blank">🔗 Share Now</a>
-
-  <!-- File Information -->
-  <div class="file-info">
-    <h3>File Information</h3>
-    <p><strong>Name:</strong> {{ file_name }}</p>
-    <p><strong>Size:</strong> {{ file_size }}</p>
-  </div>
+<div class="info">
+  <p><strong>File ID:</strong> {{ file_id }}</p>
+  <p><strong>Code:</strong> {{ code }}</p>
 </div>
 
 <script>
-  // Dark/Light Mode Toggle
-  const modeToggle = document.getElementById('modeToggle');
-  modeToggle.addEventListener('click', () => {
-    document.body.style.backgroundColor = document.body.style.backgroundColor === 'white' ? '#121212' : 'white';
-    document.body.style.color = document.body.style.color === 'black' ? 'white' : 'black';
-    modeToggle.textContent = document.body.style.backgroundColor === 'white' ? '🌙 Dark Mode' : '🌞 Light Mode';
-  });
+  const fileId = "{{ file_id }}";
+  const code = "{{ code }}";
+  const baseUrl = "{{ request.host_url.rstrip('/') }}";
 
-  // Set buttons dynamically
-  const urlParams = new URLSearchParams(window.location.search);
-  const code = urlParams.get('code');
-  const file_id = urlParams.get('file_id');
+  const videoUrl = `${mediaLink}/dl/${fileId}?code=${code}`;
 
-  document.querySelector('.play').href = `/dl/${file_id}?code=${code}`;
-  document.querySelector('.mx').href = `intent://open?url=/dl/${file_id}?code=${code}#Intent;package=com.mxtech.videoplayer.ad;scheme=https;end`;
-  document.querySelector('.vlc').href = `vlc://https://primespot.koyeb.app/dl/${file_id}?code=${code}`;
-  document.querySelector('.download').href = `/dl/${file_id}?code=${code}`;
-  document.querySelector('.create').href = `/create?file_id=${file_id}&code=${code}`;
-  document.querySelector('.share').href = `https://t.me/share/url?url=https://primespot.koyeb.app/stream/${file_id}?code=${code}`;
+  function downloadVideo() {
+    window.location.href = `${mediaLink}/dl/${fileId}?code=${code}`;
+  }
+
+  function openExternal(packageName) {
+    // Works on Android with the app installed
+    const intentUrl = `intent:${videoUrl}#Intent;package=${packageName};end`;
+    window.location.href = intentUrl;
+  }
+
+  function createLink() {
+    const link = `${baseUrl}/stream/${fileId}?code=${code}`;
+    prompt("Copy this link:", link);
+  }
+
+  function shareVideo() {
+    if (navigator.share) {
+      navigator.share({
+        title: "Watch Video",
+        url: `${mediaLink}/stream/${fileId}?code=${code}`
+      }).catch(console.error);
+    } else {
+      prompt("Copy this link:", `${baseUrl}/stream/${fileId}?code=${code}`);
+    }
+  }
 </script>
 
-    <script>
-      var player = new Plyr('#stream-media', {
-          controls:['play-large', 'rewind', 'play', 'fast-forward', 'progress', 'current-time', 'mute', 'settings', 'pip', 'fullscreen'],
-          settings:['speed','loop'],
-          speed:{selected:1,options:[0.25,0.5,0.75,1,1.25,1.5,1.75,2]},
-          seek: 10,
-          keyboard: { focused: true, global: true },
-      });
-
-      var mediaLink = "{{ mediaLink }}";
-
-      if (mediaLink) {
-          document.querySelector('#stream-media source').setAttribute('src', mediaLink);
-          player.restart();
-
-          var downloadButton = document.createElement('div');
-          downloadButton.className = 'plyr-download-button';
-
-          downloadButton.onclick = function() {
-            event.stopPropagation();
-            var link = document.createElement('a');
-            link.href = mediaLink;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          };
-
-          player.elements.container.querySelector('.plyr__video-wrapper').appendChild(downloadButton);
-
-          var shareButton = document.createElement('div');
-          shareButton.className = 'plyr-share-button';
-
-          shareButton.onclick = function() {
-            event.stopPropagation();
-            if (navigator.share) {
-              navigator.share({
-                title: "Play",
-                url: mediaLink
-              });
-            }
-          };
-
-          player.elements.container.querySelector('.plyr__video-wrapper').appendChild(shareButton);
-
-      } else {
-          document.getElementById('error-message').textContent = 'Error: Media URL not provided';
-      }
-    </script>
-    
-    
 </body>
 </html>
-
