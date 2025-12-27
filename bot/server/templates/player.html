@@ -4,155 +4,113 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PriMe SpoT - Video Player</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #111;
-        color: #fff;
-        text-align: center;
-    }
-    header {
-        background-color: #2196f3;
-        padding: 12px;
-        font-size: 24px;
-        font-weight: bold;
-    }
-    video {
-        width: 90%;
-        max-width: 700px;
-        margin: 15px auto;
-        border-radius: 8px;
-        background-color: #000;
-    }
-    button {
-        display: block;
-        width: 90%;
-        max-width: 700px;
-        margin: 8px auto;
-        padding: 12px;
-        font-size: 16px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        color: white;
-    }
-    .mx { background-color: #9a9ae5; }
-    .vlc { background-color: #4caf50; }
-    .play { background-color: #ff9800; }
-    .download { background-color: #4caf50; }
-    .create { background-color: #ffeb3b; color: #333; }
-    .share { background-color: #f44336; }
-    .file-info {
-        background-color: #222;
-        padding: 12px;
-        margin: 10px auto;
-        width: 90%;
-        max-width: 700px;
-        border-radius: 8px;
-        text-align: left;
-    }
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#121212; color:#fff; }
+    .header { background:#4fc3f7; padding:10px; display:flex; justify-content:space-between; align-items:center; }
+    .header h1 { margin:0; font-size:18px; }
+    .container { padding:15px; max-width:600px; margin:auto; }
+    .video-wrapper { width:100%; max-height:340px; background:#000; }
+    video { width:100%; height:auto; border-radius:10px; background:#000; }
+    button { width:100%; margin:5px 0; padding:12px; font-size:16px; border:none; border-radius:8px; cursor:pointer; }
+    .mx { background:#7c8ce3; color:#fff; }
+    .vlc { background:#43d644; color:#000; }
+    .play { background:#ff9900; color:#000; }
+    .download { background:#4caf50; color:#fff; }
+    .create { background:#ffc107; color:#000; }
+    .share { background:#f44336; color:#fff; }
+    .info { background:#333; padding:10px; border-radius:8px; margin-top:10px; }
 </style>
 </head>
 <body>
 
-<header>PriMe SpoT</header>
-
-<!-- Video Poster -->
-<img id="poster" src="/stream/poster.jpg" alt="Poster" style="width:90%; max-width:700px; border-radius:8px; margin:10px auto;">
-
-<!-- Video Player -->
-<video id="videoPlayer" controls poster="/stream/poster.jpg">
-    Your browser does not support HTML5 video.
-</video>
-
-<!-- Buttons -->
-<button class="mx" onclick="openMX()">▶ MX Player</button>
-<button class="vlc" onclick="openVLC()">▶ VLC Player</button>
-<button class="play" onclick="playVideo()">▶ Play it</button>
-<button class="download" onclick="downloadVideo()">↓ Download</button>
-<button class="create" onclick="createLink()">✈ Create Link</button>
-<button class="share" onclick="shareVideo()">🔗 Share Now</button>
-
-<!-- File Info -->
-<div class="file-info">
-    <p><strong>Name:</strong> <span id="fileName">Loading...</span></p>
-    <p><strong>Size:</strong> <span id="fileSize">Loading...</span></p>
+<div class="header">
+    <h1>PriMe SpoT</h1>
+    <button onclick="toggleMode()">Light Mode</button>
 </div>
 
+<div class="container">
+    <div class="video-wrapper">
+        <video id="player" controls poster="poster.jpg"></video>
+    </div>
+
+    <button class="mx" onclick="openExternal('com.mxtech.videoplayer.ad')"><i class="fa fa-play"></i> MX Player</button>
+    <button class="vlc" onclick="openExternal('org.videolan.vlc')"><i class="fa fa-play"></i> VLC Player</button>
+    <button class="play" onclick="playVideo()"><i class="fa fa-play"></i> Play it</button>
+    <button class="download" onclick="downloadVideo()"><i class="fa fa-download"></i> Download</button>
+    <button class="create" onclick="createLink()"><i class="fa fa-paper-plane"></i> Create Like This Link</button>
+    <button class="share" onclick="shareVideo()"><i class="fa fa-share"></i> Share Now</button>
+
+    <div class="info">
+        <p><strong>Name:</strong> Hridayapoorvam (2025) Kannada Dub #720p #HEVC J-HS WEB-D.mkv</p>
+        <p><strong>Size:</strong> 742.60 MB</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script>
-const urlParams = new URLSearchParams(window.location.search);
-const fileId = urlParams.get('file_id');
-const code = urlParams.get('code');
+    // Get fileId and code from URL
+    const params = new URLSearchParams(window.location.search);
+    const fileId = params.get('file_id') || '51224'; // fallback ID
+    const code = params.get('code') || '';
 
-if(!fileId || !code){
-    alert("Invalid file or code!");
-}
+    const player = document.getElementById('player');
+    const videoURL = `https://primespot.koyeb.app/dl/${fileId}?code=${code}`;
 
-// Video & download URLs
-const videoURL = `/dl/${fileId}?code=${code}`;
-const downloadURL = videoURL;
-
-// Update file info
-fetch(downloadURL, { method: 'HEAD' })
-.then(res => {
-    document.getElementById('fileName').innerText = `File ${fileId}.mp4`;
-    document.getElementById('fileSize').innerText = (res.headers.get('content-length') / (1024*1024)).toFixed(2) + " MB";
-}).catch(console.error);
-
-// MediaSource Streaming for buffering
-if ('MediaSource' in window) {
-    const video = document.getElementById('videoPlayer');
-    const mediaSource = new MediaSource();
-    video.src = URL.createObjectURL(mediaSource);
-
-    mediaSource.addEventListener('sourceopen', () => {
-        const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.64001E, mp4a.40.2"');
-        fetch(videoURL)
-            .then(response => response.arrayBuffer())
-            .then(data => {
-                sourceBuffer.appendBuffer(data);
-            })
-            .catch(console.error);
-    });
-} else {
-    // Fallback
-    document.getElementById('videoPlayer').src = videoURL;
-}
-
-// Button functions
-function openMX() {
-    window.location.href = `intent:${videoURL}#Intent;package=com.mxtech.videoplayer.ad;end`;
-}
-
-function openVLC() {
-    window.location.href = `vlc://${videoURL}`;
-}
-
-function playVideo() {
-    const video = document.getElementById('videoPlayer');
-    video.play();
-}
-
-function downloadVideo() {
-    window.location.href = downloadURL;
-}
-
-function createLink() {
-    prompt("Copy this link:", `${window.location.origin}/player.html?file_id=${fileId}&code=${code}`);
-}
-
-function shareVideo() {
-    if(navigator.share){
-        navigator.share({
-            title: "Watch Video",
-            url: `${window.location.origin}/player.html?file_id=${fileId}&code=${code}`
-        });
-    } else {
-        alert("Sharing not supported. Copy the link manually.");
+    // Play video (HLS support)
+    function playVideo() {
+        if(Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(videoURL);
+            hls.attachMedia(player);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                player.play();
+            });
+        } else if(player.canPlayType('application/vnd.apple.mpegurl')) {
+            player.src = videoURL;
+            player.addEventListener('loadedmetadata', function() {
+                player.play();
+            });
+        } else {
+            alert('Video format not supported!');
+        }
     }
-}
+
+    function downloadVideo() {
+        window.location.href = videoURL;
+    }
+
+    function openExternal(app) {
+        const url = `intent://${videoURL}#Intent;package=${app};end`;
+        window.location.href = url;
+    }
+
+    function shareVideo() {
+        if(navigator.share) {
+            navigator.share({ title: 'PriMe SpoT Video', url: window.location.href })
+            .catch(err => console.error(err));
+        } else {
+            prompt('Copy this link:', window.location.href);
+        }
+    }
+
+    function createLink() {
+        const newLink = `${window.location.origin}/player.html?file_id=${fileId}&code=${code}`;
+        prompt('Copy this link:', newLink);
+    }
+
+    function toggleMode() {
+        if(document.body.style.background === 'white') {
+            document.body.style.background = '#121212';
+            document.body.style.color = '#fff';
+        } else {
+            document.body.style.background = 'white';
+            document.body.style.color = 'black';
+        }
+    }
+
+    // Auto-play on page load
+    playVideo();
 </script>
 
 </body>
