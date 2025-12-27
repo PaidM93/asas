@@ -1,133 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PriMe Spot - Video Streaming</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #121212;
-    color: #fff;
-    margin: 0;
-    padding: 0;
-  }
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #5BC0EB;
-    padding: 10px 20px;
-    color: #fff;
-    font-weight: bold;
-    font-size: 18px;
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-  }
-  header button {
-    background: #fff;
-    color: #000;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  .container {
-    padding: 20px;
-    max-width: 600px;
-    margin: auto;
-  }
-  .poster {
-    width: 100%;
-    border-radius: 10px;
-    margin-bottom: 15px;
-  }
-  video {
-    width: 100%;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    background: #000;
-  }
-  a.button {
-    display: block;
-    text-align: center;
-    padding: 12px 0;
-    margin: 5px 0;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 16px;
-    color: #fff;
-  }
-  .mx { background: #9FA8DA; }
-  .vlc { background: #4CAF50; }
-  .play { background: #FF9800; }
-  .download { background: #4CAF50; }
-  .create { background: #FFEB3B; color: #000; }
-  .share { background: #F44336; }
-  .file-info {
-    background: #1E1E1E;
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 15px;
-  }
-  .file-info h3 { margin: 0 0 10px 0; }
-  .file-info p { margin: 5px 0; font-size: 14px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrIMe SpoT - {{ file_name }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent-blue: #5cb8ff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            width: 100%;
+            background-color: #56CCF2;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .header h1 { margin: 0; font-size: 20px; color: white; }
+
+        .container {
+            width: 95%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+
+        /* Video Player Styling */
+        .video-container {
+            width: 100%;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        video { width: 100%; height: 100%; }
+
+        /* Button Group */
+        .btn-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            color: white;
+            transition: transform 0.2s;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        .btn i { margin-right: 10px; }
+
+        .mx { background-color: #9ba7e1; }
+        .vlc { background-color: #4caf50; }
+        .playit { background-color: #ff9800; }
+        .download { background-color: #4caf50; }
+        .create { background-color: #ffeb3b; color: #333; }
+        .share { background-color: #f44336; }
+
+        /* Info Section */
+        .info-card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-card h3 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .info-item { margin: 8px 0; color: var(--text-secondary); }
+        .info-item span { color: var(--accent-blue); font-weight: bold; }
+    </style>
 </head>
 <body>
 
-<header>
-  <span>PriMe SpoT</span>
-  <button id="modeToggle">🌞 Light Mode</button>
-</header>
+    <div class="header">
+        <h1>PrIMe SpoT</h1>
+        <button style="border:none; padding:5px 10px; border-radius:5px;">🌙 Dark Mode</button>
+    </div>
 
-<div class="container">
-  <img class="poster" src="{{ poster_url }}" alt="Movie Poster">
+    <div class="container">
+        <div class="video-container">
+            <video controls poster="https://via.placeholder.com/640x360.png?text=Movie+Poster">
+                <source src="{{ dl_link }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
 
-  <video id="videoPlayer" controls poster="{{ poster_url }}">
-    <source src="{{ media_link }}" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
+        <div class="btn-list">
+            <a href="intent:{{ dl_link }}#Intent;package=com.mxtech.videoplayer.ad;S.title={{ file_name }};end" class="btn mx">
+                <i class="fas fa-play"></i> MX Player
+            </a>
 
-  <!-- Buttons -->
-  <a class="button mx" target="_blank">▶ MX Player</a>
-  <a class="button vlc" target="_blank">▶ VLC Player</a>
-  <a class="button play" target="_blank">▶ Play it</a>
-  <a class="button download" download target="_blank">⬇ Download</a>
-  <a class="button create" target="_blank">✈ Create Like This Link</a>
-  <a class="button share" target="_blank">🔗 Share Now</a>
+            <a href="vlc://{{ dl_link }}" class="btn vlc">
+                <i class="fas fa-play"></i> VLC Player
+            </a>
 
-  <!-- File Information -->
-  <div class="file-info">
-    <h3>File Information</h3>
-    <p><strong>Name:</strong> {{ file_name }}</p>
-    <p><strong>Size:</strong> {{ file_size }}</p>
-  </div>
-</div>
+            <a href="{{ dl_link }}" class="btn playit">
+                <i class="fas fa-play"></i> Play it
+            </a>
 
-<script>
-  // Dark/Light Mode Toggle
-  const modeToggle = document.getElementById('modeToggle');
-  modeToggle.addEventListener('click', () => {
-    document.body.style.backgroundColor = document.body.style.backgroundColor === 'white' ? '#121212' : 'white';
-    document.body.style.color = document.body.style.color === 'black' ? 'white' : 'black';
-    modeToggle.textContent = document.body.style.backgroundColor === 'white' ? '🌙 Dark Mode' : '🌞 Light Mode';
-  });
+            <a href="{{ dl_link }}" download class="btn download">
+                <i class="fas fa-download"></i> Download
+            </a>
 
-  // Set buttons dynamically
-  const urlParams = new URLSearchParams(window.location.search);
-  const code = urlParams.get('code');
-  const file_id = urlParams.get('file_id');
+            <a href="#" class="btn create">
+                <i class="fas fa-plane"></i> Create Like This Link
+            </a>
 
-  document.querySelector('.play').href = `/dl/${file_id}?code=${code}`;
-  document.querySelector('.mx').href = `intent://open?url=/dl/${file_id}?code=${code}#Intent;package=com.mxtech.videoplayer.ad;scheme=https;end`;
-  document.querySelector('.vlc').href = `vlc://https://primespot.koyeb.app/dl/${file_id}?code=${code}`;
-  document.querySelector('.download').href = `/dl/${file_id}?code=${code}`;
-  document.querySelector('.create').href = `/create?file_id=${file_id}&code=${code}`;
-  document.querySelector('.share').href = `https://t.me/share/url?url=https://primespot.koyeb.app/stream/${file_id}?code=${code}`;
-</script>
+            <a href="https://t.me/share/url?url={{ request.url }}" class="btn share">
+                <i class="fas fa-link"></i> Share Now
+            </a>
+        </div>
+
+        <div class="info-card">
+            <h3>File Information</h3>
+            <div class="info-item">Name: <span>{{ file_name if file_name else 'Unknown' }}</span></div>
+            <div class="info-item">Size: <span>{{ file_size if file_size else 'Calculating...' }}</span></div>
+        </div>
+    </div>
 
 </body>
 </html>
+
