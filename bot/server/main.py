@@ -76,7 +76,8 @@ async def transmit_file(file_id):
             chunk_index += 1
 
     except Exception as e:
-        print("Stream stopped:", e)
+    print("Stream stopped:", e)
+    return
         
 
     return Response(file_stream(), headers=headers, status=status_code)
@@ -85,4 +86,5 @@ async def transmit_file(file_id):
 async def stream_file(file_id):
     code = request.args.get('code') or abort(401)
     return await render_template('player.html', mediaLink=f'{Server.BASE_URL}/dl/{file_id}?code={code}')
+
 
