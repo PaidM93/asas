@@ -1,117 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Video Player</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #111;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      flex-direction: column;
-    }
-    video {
-      max-width: 90%;
-      max-height: 80vh;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.7);
-      background-color: black;
-    }
-    .controls {
-      margin-top: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .controls button {
-      padding: 8px 16px;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      background-color: #1a73e8;
-      color: white;
-      transition: 0.2s;
-    }
-    .controls button:hover {
-      background-color: #155ab6;
-    }
-    input[type=range] {
-      width: 200px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Streaming</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #121212;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #4fc3f7;
+    padding: 10px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    color: #000;
+    font-weight: bold;
+    font-size: 1.2em;
+  }
+
+  .poster {
+    max-width: 100%;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 20px;
+  }
+
+  .buttons a {
+    text-decoration: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    display: block;
+    color: white;
+  }
+
+  .mx { background: #8e99f3; }
+  .vlc { background: #43a047; }
+  .play { background: #ff9800; }
+  .download { background: #4caf50; }
+  .create { background: #ffeb3b; color: #000; }
+  .share { background: #f44336; }
+
+  .file-info {
+    width: 100%;
+    max-width: 400px;
+    background: #1f1f1f;
+    padding: 15px;
+    border-radius: 10px;
+  }
+
+  .file-info h3 {
+    margin-top: 0;
+  }
+
+  video {
+    width: 100%;
+    max-width: 400px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+  }
+</style>
 </head>
 <body>
-  <video id="videoPlayer" controls preload="metadata" playsinline>
-    <source id="videoSource" src="" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
 
-  <div class="controls">
-    <button id="playPause">Play/Pause</button>
-    <button id="muteUnmute">Mute/Unmute</button>
-    <span id="timeDisplay">0:00 / 0:00</span>
-    <input type="range" id="seekBar" value="0" min="0" max="100" step="0.1">
-  </div>
+<div class="header">
+  <span>PriMe SpoT</span>
+  <button onclick="toggleTheme()">🌞 Light Mode</button>
+</div>
 
-  <script>
-    // Get video and controls
-    const video = document.getElementById('videoPlayer');
-    const playPauseBtn = document.getElementById('playPause');
-    const muteBtn = document.getElementById('muteUnmute');
-    const seekBar = document.getElementById('seekBar');
-    const timeDisplay = document.getElementById('timeDisplay');
+<img class="poster" src="poster.jpg" alt="Movie Poster">
 
-    // Securely generate video URL
-    const videoId = new URLSearchParams(window.location.search).get('video') || '';
-    const code = new URLSearchParams(window.location.search).get('code') || '';
-    const videoUrl = `/dl/${videoId}?code=${code}`;
-    document.getElementById('videoSource').src = videoUrl;
-    video.load();
+<!-- Video player -->
+<video id="videoPlayer" controls>
+  <source src="{{ mediaLink }}" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
-    // Play/Pause
-    playPauseBtn.addEventListener('click', () => {
-      video.paused ? video.play() : video.pause();
-    });
+<div class="buttons">
+  <a href="{{ mxPlayerLink }}" class="mx">▶ MX Player</a>
+  <a href="{{ vlcPlayerLink }}" class="vlc">▶ VLC Player</a>
+  <a href="{{ mediaLink }}" class="play">▶ Play it</a>
+  <a href="{{ mediaLink }}" download class="download">⬇ Download</a>
+  <a href="{{ createLink }}" class="create">✈ Create Like This Link</a>
+  <a href="{{ shareLink }}" class="share">🔗 Share Now</a>
+</div>
 
-    // Mute/Unmute
-    muteBtn.addEventListener('click', () => {
-      video.muted = !video.muted;
-    });
+<div class="file-info">
+  <h3>File Information</h3>
+  <p><strong>Name:</strong> {{ fileName }}</p>
+  <p><strong>Size:</strong> {{ fileSize }}</p>
+</div>
 
-    // Update seekBar & time
-    video.addEventListener('timeupdate', () => {
-      const value = (video.currentTime / video.duration) * 100;
-      seekBar.value = value;
+<script>
+function toggleTheme() {
+  const body = document.body;
+  if(body.style.background === 'white') {
+    body.style.background = '#121212';
+    body.style.color = '#fff';
+  } else {
+    body.style.background = '#fff';
+    body.style.color = '#000';
+  }
+}
+</script>
 
-      const formatTime = t => {
-        const minutes = Math.floor(t / 60);
-        const seconds = Math.floor(t % 60).toString().padStart(2, '0');
-        return `${minutes}:${seconds}`;
-      };
-      timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
-    });
-
-    // Seek video
-    seekBar.addEventListener('input', () => {
-      video.currentTime = (seekBar.value / 100) * video.duration;
-    });
-
-    // Mobile touch optimization
-    video.addEventListener('touchstart', () => {
-      video.setAttribute('playsinline', '');
-    });
-
-    // Preload for faster buffering
-    video.preload = 'auto';
-  </script>
 </body>
 </html>
