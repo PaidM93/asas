@@ -1,95 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PriMe SpoT - Video Player</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 700px;
-      margin: auto;
-      padding: 20px;
-    }
-    .video-container {
-      width: 100%;
-      margin-bottom: 20px;
-    }
-    video {
-      width: 100%;
-      border-radius: 8px;
-      background: #000;
-    }
-    .buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .buttons button, .buttons a {
-      flex: 1;
-      padding: 10px;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      text-decoration: none;
-      text-align: center;
-      color: #fff;
-    }
-    .mx { background: #7b7fff; }
-    .vlc { background: #28c940; }
-    .play { background: #ff8c00; }
-    .download { background: #28c940; }
-    .create { background: #ffd500; color: #000; }
-    .share { background: #ff2a50; }
-    .file-info {
-      background: #222;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    .file-info p { margin: 5px 0; }
-  </style>
+<meta charset="UTF-8">
+<title>Stream Video</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    background: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 10px;
+  }
+  video {
+    width: 90%;
+    max-width: 720px;
+    border-radius: 8px;
+    background: #000;
+    margin-bottom: 15px;
+  }
+  .btn {
+    display: block;
+    width: 90%;
+    margin: 6px auto;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #fff;
+    cursor: pointer;
+  }
+  .btn-play { background: #ff9800; }
+  .btn-download { background: #4caf50; }
+  .btn-mx { background: #7b7fff; }
+  .btn-vlc { background: #43a047; }
+  .btn-create { background: #ffd600; color: #000; }
+  .btn-share { background: #f44336; }
+  .info {
+    background: #111;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 12px;
+    text-align: left;
+    width: 90%;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .info p { margin: 4px 0; font-size: 14px; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>PriMe SpoT</h1>
 
-    <!-- Video Player -->
-    <div class="video-container">
-      <video id="videoPlayer" controls poster="{{ poster_url or '' }}">
-        <source src="{{ video_url }}" type="video/mp4">
-        Your browser does not support HTML5 video.
-      </video>
-    </div>
+<h2>Video Stream</h2>
 
-    <!-- Buttons -->
-    <div class="buttons">
-      <a class="mx" href="mxplayer://play?url={{ video_url }}">▶ MX Player</a>
-      <a class="vlc" href="vlc://{{ video_url }}">▶ VLC Player</a>
-      <button class="play" onclick="document.getElementById('videoPlayer').play();">▶ Play it</button>
-      <a class="download" href="{{ video_url }}" download>⬇ Download</a>
-      <a class="create" href="/create?file_id={{ file_id }}&code={{ code }}">✈ Create Like This Link</a>
-      <a class="share" href="https://t.me/share/url?url={{ request.url }}">↗ Share Now</a>
-    </div>
+<video id="videoPlayer" controls poster="{{ poster_url or '' }}">
+    <source src="{{ mediaLink }}" type="video/mp4">
+    Your browser does not support this video.
+</video>
 
-    <!-- File Information -->
-    <div class="file-info">
-      <p><strong>Name:</strong> {{ file_name }}</p>
-      <p><strong>Size:</strong> {{ file_size }}</p>
-    </div>
-  </div>
+<!-- Buttons -->
+<a class="btn btn-mx" href="intent:{{ mediaLink }}#Intent;package=com.mxtech.videoplayer.ad;end">▶ MX Player</a>
+<a class="btn btn-vlc" href="intent:{{ mediaLink }}#Intent;package=org.videolan.vlc;end">▶ VLC Player</a>
+<button class="btn btn-play" onclick="document.getElementById('videoPlayer').play();">▶ Play</button>
+<a class="btn btn-download" href="{{ mediaLink }}" download>⬇ Download</a>
+<button class="btn btn-create" onclick="createLink()">✈ Create Link</button>
+<button class="btn btn-share" onclick="shareNow()">↗ Share</button>
 
-  <script>
-    const video = document.getElementById('videoPlayer');
-    video.addEventListener('waiting', () => console.log('Buffering...'));
-    video.addEventListener('playing', () => console.log('Playing...'));
-  </script>
+<!-- File Info -->
+<div class="info">
+    <p><strong>File ID:</strong> {{ file_id }}</p>
+    <p><strong>Code:</strong> {{ code }}</p>
+    <p><strong>Filename:</strong> {{ file_name }}</p>
+    <p><strong>Filesize:</strong> {{ file_size }}</p>
+</div>
+
+<script>
+function createLink() {
+    const link = `${window.location.origin}/stream/{{ file_id }}?code={{ code }}`;
+    prompt("Copy streaming link:", link);
+}
+function shareNow() {
+    const shareURL = `${window.location.origin}/stream/{{ file_id }}?code={{ code }}`;
+    if (navigator.share) {
+        navigator.share({ title: "Video Link", url: shareURL });
+    } else {
+        prompt("Copy share link:", shareURL);
+    }
+}
+</script>
+
 </body>
 </html>
